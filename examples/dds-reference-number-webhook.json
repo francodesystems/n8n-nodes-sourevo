@@ -1,0 +1,32 @@
+{
+  "name": "Sourevo: DDS status changes (webhook)",
+  "nodes": [
+    {
+      "parameters": {
+        "events": [
+          "dds.status_changed",
+          "dds.submitted"
+        ],
+        "options": {}
+      },
+      "name": "Sourevo Trigger",
+      "type": "@francodesystems-npm/n8n-nodes-sourevo.sourevoTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "credentials": {
+        "sourevoApi": {
+          "id": "",
+          "name": "Sourevo API"
+        }
+      }
+    }
+  ],
+  "connections": {},
+  "settings": {
+    "executionOrder": "v1",
+    "saveDataSuccessExecution": "all"
+  }
+}

@@ -1,0 +1,452 @@
+{
+  "name": "Sourevo: from goods receipt to submitted DDS",
+  "nodes": [
+    {
+      "parameters": {},
+      "name": "Start",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "account",
+        "operation": "get",
+        "requestOptions": {
+          "includeMode": true
+        }
+      },
+      "name": "Get account",
+      "type": "@francodesystems-npm/n8n-nodes-sourevo.sourevo",
+      "typeVersion": 1,
+      "position": [
+        200,
+        0
+      ],
+      "credentials": {
+        "sourevoApi": {
+          "id": "",
+          "name": "Sourevo API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "product",
+        "operation": "create",
+        "description": "Green coffee (n8n e2e)",
+        "additionalFields": {
+          "cnCode": "0901 11 00",
+          "externalRef": "={{ 'N8N-PROD-' + $execution.id }}"
+        }
+      },
+      "name": "Create product",
+      "type": "@francodesystems-npm/n8n-nodes-sourevo.sourevo",
+      "typeVersion": 1,
+      "position": [
+        400,
+        0
+      ],
+      "credentials": {
+        "sourevoApi": {
+          "id": "",
+          "name": "Sourevo API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "supplier",
+        "operation": "create",
+        "name": "Fazenda n8n",
+        "country": "BR",
+        "additionalFields": {
+          "email": "fazenda@example.test",
+          "legalName": "Fazenda n8n Ltda",
+          "externalRef": "={{ 'N8N-SUP-' + $execution.id }}"
+        }
+      },
+      "name": "Create supplier",
+      "type": "@francodesystems-npm/n8n-nodes-sourevo.sourevo",
+      "typeVersion": 1,
+      "position": [
+        600,
+        0
+      ],
+      "credentials": {
+        "sourevoApi": {
+          "id": "",
+          "name": "Sourevo API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "plot",
+        "operation": "create",
+        "supplierId": "={{ $('Create supplier').item.json.id }}",
+        "geometrySource": "point",
+        "latitude": -21.12,
+        "longitude": -47.81,
+        "areaHa": 2.5,
+        "additionalFields": {
+          "name": "Talh\u00e3o 1",
+          "country": "BR"
+        }
+      },
+      "name": "Add plot",
+      "type": "@francodesystems-npm/n8n-nodes-sourevo.sourevo",
+      "typeVersion": 1,
+      "position": [
+        800,
+        0
+      ],
+      "credentials": {
+        "sourevoApi": {
+          "id": "",
+          "name": "Sourevo API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "batch",
+        "operation": "create",
+        "productId": "={{ $('Create product').item.json.id }}",
+        "netWeightKg": 19200,
+        "additionalFields": {
+          "externalRef": "={{ 'WH/IN/' + $execution.id }}",
+          "plotIds": "={{ $('Add plot').item.json.id }}",
+          "harvestStart": "2026-05-01T00:00:00"
+        }
+      },
+      "name": "Create batch",
+      "type": "@francodesystems-npm/n8n-nodes-sourevo.sourevo",
+      "typeVersion": 1,
+      "position": [
+        1000,
+        0
+      ],
+      "credentials": {
+        "sourevoApi": {
+          "id": "",
+          "name": "Sourevo API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "operator",
+        "operation": "getAll",
+        "returnAll": true
+      },
+      "name": "List companies",
+      "type": "@francodesystems-npm/n8n-nodes-sourevo.sourevo",
+      "typeVersion": 1,
+      "position": [
+        1200,
+        0
+      ],
+      "credentials": {
+        "sourevoApi": {
+          "id": "",
+          "name": "Sourevo API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "dds",
+        "operation": "create",
+        "batchId": "={{ $('Create batch').item.json.id }}",
+        "operatorId": "={{ $('List companies').first().json.id }}",
+        "internalReferenceNumber": "={{ 'N8N-' + $execution.id }}",
+        "activityType": "IMPORT",
+        "operatorRole": "OPERATOR",
+        "countryOfActivity": "ES"
+      },
+      "name": "Create DDS draft",
+      "type": "@francodesystems-npm/n8n-nodes-sourevo.sourevo",
+      "typeVersion": 1,
+      "position": [
+        1400,
+        0
+      ],
+      "credentials": {
+        "sourevoApi": {
+          "id": "",
+          "name": "Sourevo API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "dds",
+        "operation": "riskAssessment",
+        "ddsId": "={{ $('Create DDS draft').item.json.id }}",
+        "conclusion": "NEGLIGIBLE",
+        "notes": "n8n e2e: origin in a standard-risk area, plot checked with the supplier.",
+        "riskOptions": {
+          "acceptGaps": true
+        }
+      },
+      "name": "Set risk assessment",
+      "type": "@francodesystems-npm/n8n-nodes-sourevo.sourevo",
+      "typeVersion": 1,
+      "position": [
+        1600,
+        0
+      ],
+      "credentials": {
+        "sourevoApi": {
+          "id": "",
+          "name": "Sourevo API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "dds",
+        "operation": "check",
+        "ddsId": "={{ $('Create DDS draft').item.json.id }}"
+      },
+      "name": "Check DDS",
+      "type": "@francodesystems-npm/n8n-nodes-sourevo.sourevo",
+      "typeVersion": 1,
+      "position": [
+        1800,
+        0
+      ],
+      "credentials": {
+        "sourevoApi": {
+          "id": "",
+          "name": "Sourevo API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "dds",
+        "operation": "submit",
+        "ddsId": "={{ $('Create DDS draft').item.json.id }}",
+        "acknowledgeAll": true,
+        "requestOptions": {
+          "includeMode": true
+        }
+      },
+      "name": "Submit DDS",
+      "type": "@francodesystems-npm/n8n-nodes-sourevo.sourevo",
+      "typeVersion": 1,
+      "position": [
+        2000,
+        0
+      ],
+      "credentials": {
+        "sourevoApi": {
+          "id": "",
+          "name": "Sourevo API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "dds",
+        "operation": "get",
+        "ddsId": "={{ $('Create DDS draft').item.json.id }}"
+      },
+      "name": "Get DDS",
+      "type": "@francodesystems-npm/n8n-nodes-sourevo.sourevo",
+      "typeVersion": 1,
+      "position": [
+        2200,
+        0
+      ],
+      "credentials": {
+        "sourevoApi": {
+          "id": "",
+          "name": "Sourevo API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "dds",
+        "operation": "getAll",
+        "returnAll": true,
+        "filters": {
+          "status": [
+            "AVAILABLE",
+            "SUBMITTED"
+          ]
+        }
+      },
+      "name": "List DDS",
+      "type": "@francodesystems-npm/n8n-nodes-sourevo.sourevo",
+      "typeVersion": 1,
+      "position": [
+        2400,
+        0
+      ],
+      "credentials": {
+        "sourevoApi": {
+          "id": "",
+          "name": "Sourevo API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Sourevo e2e\nCreates a product, supplier, plot and batch, drafts a DDS, records the risk assessment, checks it and submits it.\n\nWith a trial key everything runs in simulated mode (SIM reference numbers, nothing reaches TRACES). The API is available on the Pro, Enterprise and Forwarder plans; packs do not include it.\n\nThe risk assessment step uses Accept Gaps and the submit step acknowledges all warnings: review both before using this on real data.",
+        "height": 300,
+        "width": 420
+      },
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        0,
+        -360
+      ]
+    }
+  ],
+  "connections": {
+    "Start": {
+      "main": [
+        [
+          {
+            "node": "Get account",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get account": {
+      "main": [
+        [
+          {
+            "node": "Create product",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create product": {
+      "main": [
+        [
+          {
+            "node": "Create supplier",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create supplier": {
+      "main": [
+        [
+          {
+            "node": "Add plot",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add plot": {
+      "main": [
+        [
+          {
+            "node": "Create batch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create batch": {
+      "main": [
+        [
+          {
+            "node": "List companies",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "List companies": {
+      "main": [
+        [
+          {
+            "node": "Create DDS draft",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create DDS draft": {
+      "main": [
+        [
+          {
+            "node": "Set risk assessment",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set risk assessment": {
+      "main": [
+        [
+          {
+            "node": "Check DDS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check DDS": {
+      "main": [
+        [
+          {
+            "node": "Submit DDS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Submit DDS": {
+      "main": [
+        [
+          {
+            "node": "Get DDS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get DDS": {
+      "main": [
+        [
+          {
+            "node": "List DDS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}
